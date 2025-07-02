@@ -21,6 +21,7 @@ window.addEventListener("load", function () {
     saveDataOnSSOAppExpansion();
   } else if (
     hostname.includes("console.aws.amazon.com") ||
+    hostname.includes("console.amazonaws-us-gov.com") ||
     hostname.includes("health.aws.amazon.com")
   ) {
     // AWS Console (including PHD)
