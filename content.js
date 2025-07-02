@@ -1,24 +1,20 @@
 // If you change this, also change it in options.js
 var defaultcolorjson = {
   ".*LLC.*": "Orange",
-  ".*Production.*": "Red",
-  ".*QA.*": "Purple",
-  ".*prime.*": "Orange"
-};
-
-var defaultfavsjson = {
-  favorites: [
-    "123456789012-sample",
-    "111111111111-sample",
-    "222222222222-sample",
-  ],
+  ".*acqa.*": "Purple",
+  ".*dasdigitalplatform-dev.*": "mediumpurple",
+  ".*dasdigitalplatform-?(?!dev).*": "darkolivegreen",
+  ".*gov.*": "blue",
+  ".*prime.*": "Orange",
+  ".*prod.*": "darkred"
 };
 
 window.addEventListener("load", function () {
   const { hostname, pathname } = window.location;
-  if (hostname.endsWith(".awsapps.com") && pathname.startsWith("/start")) {
+  if (hostname.endsWith(".awsapps.com") && (pathname.startsWith("/start") || pathname.startsWith("/directory"))) {
     // AWS SSO portal
     saveDataOnSSOAppExpansion();
+    console.debug("Detected AWS SSO portal, saving account names and profiles.");
   } else if (
     hostname.includes("console.aws.amazon.com") ||
     hostname.includes("console.amazonaws-us-gov.com") ||
@@ -26,11 +22,13 @@ window.addEventListener("load", function () {
   ) {
     // AWS Console (including PHD)
     changeConsoleHeaderAndFooter();
+    console.debug("Detected AWS Console, changing header and footer.");
   }
 });
 
 // Helper function for waiting until an element selection has been rendered.
 function onElementReady(selectorFn, fn) {
+  console.debug("Waiting for element to be ready...");
   let timedOut = false;
   setTimeout(function () {
     timedOut = true;
@@ -38,8 +36,10 @@ function onElementReady(selectorFn, fn) {
   const waitForElement = function () {
     if (timedOut) {
       fn(new Error("Element selection timed out."));
+      return;
     }
     const selection = selectorFn();
+    //console.debug("Element selection:", selection);
     const firstEl = Array.isArray(selection) ? selection[0] : selection;
     firstEl
       ? fn(undefined, selection)
@@ -52,9 +52,10 @@ function saveDataOnSSOAppExpansion() {
   // Finds the SSO portal app for AWS account selection and adds a click
   // handler that will save the account names and profiles to local storage.
   const awsAccountsAppSelector = () =>
-    Array.from(document.querySelectorAll("portal-application")).find((el) => {
-      return el.textContent.trim().startsWith("AWS Account");
+    Array.from(document.querySelectorAll("div[data-testid=account-list]")).find((el) => {
+      return true;
     });
+  console.debug("Waiting for AWS Accounts app to be ready...");
   onElementReady(awsAccountsAppSelector, function (err, awsAccountsApp) {
     if (err) {
       console.error(err);
@@ -62,67 +63,29 @@ function saveDataOnSSOAppExpansion() {
     }
     function onClickHandler() {
       // awsAccountsApp.removeEventListener("click", onClickHandler);
+      console.debug("AWS Accounts app clicked, saving account names and profiles.");
       saveAccountNames();
-      makeFavs();
     }
+    console.debug("AWS Accounts app is ready, adding click handler.");
     awsAccountsApp.addEventListener("click", onClickHandler);
   });
 }
 
-function makeFavs() {
-  chrome.storage.local.get("ce_aws_sso_favorites", function (items) {
-    var favs = defaultfavsjson;
-    if (items.ce_aws_sso_favorites) {
-      favs = items.ce_aws_sso_favorites;
-    }
-    if (favs.favorites) {
-      sortFavs(favs.favorites);
-    }
-  });
-}
-
-function sortFavs(arFavs) {
-  const accountsSelector = () =>
-    Array.from(document.querySelectorAll("sso-expander portal-instance"));
-  onElementReady(accountsSelector, function (err, accountElements) {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    const target = document.querySelector("portal-instance-list");
-
-    arFavsRev = arFavs.reverse();
-    iconurl = chrome.runtime.getURL("icons/fav.png");
-
-    for (const favid of arFavsRev) {
-      for (const el of accountElements) {
-        const accountId = el
-          .querySelector(".accountId")
-          .textContent.replace("#", "");
-        if (accountId == favid) {
-          // Move the favorites account element to the beginning of the list
-          target.insertBefore(el.parentNode, target.firstChild);
-          el.querySelector("img").src = iconurl;
-          break;
-        }
-      }
-    }
-  });
-}
 
 function saveAccountNames() {
+  console.debug("Attempting to save account names and IDs...");
   const accountsSelector = () =>
-    Array.from(document.querySelectorAll("sso-expander .instance-block"));
+    Array.from(document.querySelectorAll("[data-testid=account-list-cell]"));
   onElementReady(accountsSelector, function (err, accountElements) {
     if (err) {
       console.error(err);
       return;
     }
+    console.debug("Found account elements:", accountElements);
     const accountMap = accountElements.reduce((map, el) => {
-      const name = el.querySelector(".name").textContent;
-      const accountId = el
-        .querySelector(".accountId")
-        .textContent.replace("#", "");
+      const name = Array.from(el.querySelectorAll("span")).find(x=> x.children.length == 0).innerText
+      const accountId = Array.from(el.querySelectorAll("span")).find(x=> x.children.length == 0 && !isNaN(x.innerText)).innerText
+      console.debug(`Saving account: ${accountId} - ${name}`);
       map[accountId] = name;
       return map;
     }, {});
@@ -137,6 +100,7 @@ function saveAccountNames() {
 }
 
 function changeConsoleHeaderAndFooter() {
+  console.debug("Changing AWS Console header and footer...");
   const consoleFederatedLoginPattern = /AWSReservedSSO_(.+)_(.+)/;
   // show AWS SSO data to AWS console header
   chrome.runtime.sendMessage({ method: "getSSOData" }, function (response) {
@@ -144,6 +108,7 @@ function changeConsoleHeaderAndFooter() {
       return;
     }
     const accountMap = response.data.data;
+    console.debug("Retrieved account map from backend:", accountMap);
     const labelSelector = () =>
       document.querySelector(
         "span[data-testid='awsc-nav-account-menu-button']"
@@ -205,12 +170,12 @@ function changeConsoleHeaderAndFooter() {
           }
           for (var regexp in colors) {
             re = new RegExp(regexp);
+            console.debug(`Checking if account name ${accountName} matches RegEx: ${regexp}`);
             if (re.test(accountName)) {
               const headerSelector = () =>
                 document.querySelector("header").querySelector("nav");
               onElementReady(headerSelector, function (err, header) {
                 if (err) {
-                  // console.warn(err);
                   return;
                 }
                 header.style.backgroundColor = colors[regexp];

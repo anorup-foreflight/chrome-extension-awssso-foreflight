@@ -1,18 +1,14 @@
 // If you change this, also change it in content.js
 var defaultcolorjson = {
   ".*LLC.*": "Orange",
-  ".*Production.*": "Red",
-  ".*QA.*": "Purple",
-  ".*prime.*": "Orange"
+  ".*acqa.*": "Purple",
+  ".*dasdigitalplatform-dev.*": "mediumpurple",
+  ".*dasdigitalplatform-?(?!dev).*": "darkolivegreen",
+  ".*gov.*": "blue",
+  ".*prime.*": "Orange",
+  ".*prod.*": "darkred"
 };
 
-var defaultfavsjson = {
-  "favorites": [
-    "123456789012-sample",
-    "111111111111-sample",
-    "222222222222-sample"
-  ]
-};
 
 function savecolors() {
   var inputjson = document.getElementById("inputjsoncolors").value;
@@ -29,20 +25,6 @@ function savecolors() {
   document.getElementById("mescolors").innerHTML = "saved.";
 }
 
-function savefav() {
-  var inputjson = document.getElementById("inputjsonfav").value;
-
-  var favorites;
-  try {
-    favorites = JSON.parse(inputjson);
-  } catch (e) {
-    document.getElementById("mesfav").innerHTML = "invalid json.";
-    return;
-  }
-
-  chrome.storage.local.set({ ce_aws_sso_favorites: favorites }, function () {});
-  document.getElementById("mesfav").innerHTML = "saved.";
-}
 
 function load() {
   chrome.storage.local.get("ce_aws_sso_colors", function (items) {
@@ -54,18 +36,8 @@ function load() {
     }
     document.getElementById("inputjsoncolors").value = value;
   });
-  chrome.storage.local.get("ce_aws_sso_favorites", function (items) {
-    var value;
-    if (!items.ce_aws_sso_favorites) {
-      value = JSON.stringify(defaultfavsjson, null, "\t");
-    } else {
-      value = JSON.stringify(items.ce_aws_sso_favorites, null, "\t");
-    }
-    document.getElementById("inputjsonfav").value = value;
-  });
 }
 
 document.addEventListener("DOMContentLoaded", load);
 
 document.getElementById("savebuttoncolors").addEventListener("click", savecolors);
-document.getElementById("savebuttonfav").addEventListener("click", savefav);
