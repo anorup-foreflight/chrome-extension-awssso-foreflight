@@ -1,7 +1,9 @@
+// If you change this, also change it in options.js
 var defaultcolorjson = {
-  ".*production.*": "maroon",
-  ".*Production.*": "maroon",
-  "^SomeStrings.*": "darkblue",
+  ".*LLC.*": "Orange",
+  ".*Production.*": "Red",
+  ".*QA.*": "Purple",
+  ".*prime.*": "Orange"
 };
 
 var defaultfavsjson = {

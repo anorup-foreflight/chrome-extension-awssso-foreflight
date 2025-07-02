@@ -1,15 +1,17 @@
+// If you change this, also change it in content.js
 var defaultcolorjson = {
-  ".*production.*": "maroon",
-  ".*Production.*": "maroon",
-  "^SomeStrings.*": "darkblue",
+  ".*LLC.*": "Orange",
+  ".*Production.*": "Red",
+  ".*QA.*": "Purple",
+  ".*prime.*": "Orange"
 };
 
 var defaultfavsjson = {
-	"favorites": [
-		"123456789012-sample",
-		"111111111111-sample",
-		"222222222222-sample"
-	]
+  "favorites": [
+    "123456789012-sample",
+    "111111111111-sample",
+    "222222222222-sample"
+  ]
 };
 
 function savecolors() {

@@ -1,8 +1,0 @@
-{
-  "extName": {
-    "message": "拡張機能 for AWS SSO"
-  },
-  "extDescription": {
-    "message": "AWS Single Sign-On (AWS SSO) を使うときに、もうちょっと便利に使えるようにするための拡張機能です。"
-  }
-}

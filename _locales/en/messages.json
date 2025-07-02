@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "Extension for AWS SSO"
+    "message": "Extension for AWS SSO - ForeFlight"
   },
   "extDescription": {
-    "message": "This extension is for AWS Single Sign-On (AWS SSO)."
+    "message": "This extension is for AWS Single Sign-On (AWS SSO) - ForeFlight Edition."
   }
 }
